@@ -47,10 +47,25 @@ const PostRealEstate = () => {
   const [values, setFormValues] = useState(initialFormValues);
 
   const [images, setImages] = useState(null);
+  const [imageError, setImageError] = useState("");
 
   const handleImagesChange = (e) => {
-    const arr = Array.from(e.target.files);
-    setImages(arr.map((file) => URL.createObjectURL(file)));
+    const files = Array.from(e.target.files);
+
+    // Check if number of files exceeds the limit
+    if (files.length > 7) {
+      setImageError("You can upload a maximum of 7 images");
+      // Clear the input by resetting its value
+      e.target.value = "";
+      setImages(null);
+      return;
+    }
+
+    // Clear any previous errors
+    setImageError("");
+
+    // Process the images as before
+    setImages(files.map((file) => URL.createObjectURL(file)));
   };
 
   const previewImage = () => {
@@ -307,7 +322,7 @@ const PostRealEstate = () => {
                       htmlFor="formFileMultiple"
                       className="form-label inline-block mb-2 text-gray-500 cursor-pointer font-robotoNormal"
                     >
-                      Upload Images of the Real Estate
+                      Upload Images of the Real Estate (Maximum 7)
                     </label>
 
                     <input
@@ -319,8 +334,11 @@ const PostRealEstate = () => {
                       multiple
                       onChange={handleImagesChange}
                     />
+                    {imageError && (
+                      <p className="mt-1 text-xs text-red-500">{imageError}</p>
+                    )}
                     <p className="mt-1 text-xs text-gray-400">
-                      JPG, JPEG, PNG or GIF (MAX 3.5mb per)
+                      JPG, JPEG, PNG or GIF (MAX 3.5mb per) - Maximum 7 images
                     </p>
                   </div>
                   <div className="flex flex-wrap self-center border mt-2">
