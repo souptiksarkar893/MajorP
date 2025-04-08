@@ -36,7 +36,24 @@ const UpdatePropertyForm = ({
 
   const handleChange = useCallback(
     (e) => {
-      setFormValues({ ...values, [e.target.name]: e.target.value });
+      // Check if this is coming from AutoSuggestField (location)
+      if (typeof e !== "object" || !e.target) {
+        // This is a direct value from AutoSuggestField
+        setFormValues({ ...values, location: e });
+      } else {
+        // Handle location field specially to ensure it's a string
+        if (e.target.name === "location") {
+          let locationValue = e.target.value;
+          // If it's an array, take the first value
+          if (Array.isArray(locationValue)) {
+            locationValue = locationValue[0];
+          }
+          setFormValues({ ...values, location: locationValue });
+        } else {
+          // Regular form field
+          setFormValues({ ...values, [e.target.name]: e.target.value });
+        }
+      }
     },
     [values]
   );

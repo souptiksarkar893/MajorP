@@ -33,6 +33,7 @@ const AutoSuggestField = ({ label, name, value, handleChange }) => {
   const handleSelect = (event, newValue) => {
     if (newValue) {
       const fullValue = `${newValue.name}, ${newValue.country}`;
+      // Always pass a string value for location
       handleChange({
         target: { name, value: fullValue },
       });
@@ -43,18 +44,38 @@ const AutoSuggestField = ({ label, name, value, handleChange }) => {
     }
   };
 
+  // Parse value safely to handle different formats
+  const parseValue = (val) => {
+    if (!val) return null;
+
+    try {
+      // Handle array case - take first value
+      if (Array.isArray(val)) {
+        val = val[0];
+      }
+
+      // If value is already in the right format, use it
+      if (typeof val === "object" && val.name && val.country) {
+        return val;
+      }
+
+      // Otherwise try to parse it from string
+      const parts = val.split(",");
+      return {
+        name: parts[0]?.trim() || "",
+        country: parts[1]?.trim() || "",
+      };
+    } catch (err) {
+      console.error("Error parsing location value:", err);
+      return null;
+    }
+  };
+
   return (
     <Autocomplete
       options={options}
       getOptionLabel={(option) => `${option.name}, ${option.country}`}
-      value={
-        value
-          ? {
-              name: value.split(",")[0],
-              country: value.split(",")[1]?.trim() || "",
-            }
-          : null
-      }
+      value={parseValue(value)}
       onChange={handleSelect}
       onInputChange={handleInputChange}
       loading={loading}
@@ -65,6 +86,8 @@ const AutoSuggestField = ({ label, name, value, handleChange }) => {
           variant="outlined"
           sx={{ width: "60%" }}
           color="tertiary"
+          name={name}
+          required
         />
       )}
     />

@@ -67,7 +67,24 @@ const PostRealEstate = () => {
 
   const handleChange = useCallback(
     (e) => {
-      setFormValues({ ...values, [e.target.name]: e.target.value });
+      // Check if this is coming from AutoSuggestField (location)
+      if (typeof e !== "object" || !e.target) {
+        // This is a direct value from AutoSuggestField
+        setFormValues({ ...values, location: e });
+      } else {
+        // Handle location field specially to ensure it's a string
+        if (e.target.name === "location") {
+          let locationValue = e.target.value;
+          // If it's an array, take the first value
+          if (Array.isArray(locationValue)) {
+            locationValue = locationValue[0];
+          }
+          setFormValues({ ...values, location: locationValue });
+        } else {
+          // Regular form field
+          setFormValues({ ...values, [e.target.name]: e.target.value });
+        }
+      }
     },
     [values]
   );
@@ -80,8 +97,19 @@ const PostRealEstate = () => {
     const form = document.getElementById("form");
     const formData = new FormData(form);
 
-    // Add `location` manually if needed
-    formData.append("location", values.location);
+    // REMOVE THIS LINE - it's causing the duplicate location entries
+    // formData.append("location", values.location);
+
+    // Instead, ensure location is set correctly (only once)
+    // First remove any existing location entries
+    formData.delete("location");
+    // Then add the location as a string value
+    formData.append(
+      "location",
+      typeof values.location === "string"
+        ? values.location
+        : String(values.location)
+    );
 
     // Debug form data
     for (let [key, value] of formData.entries()) {
@@ -253,13 +281,7 @@ const PostRealEstate = () => {
                     label="Location"
                     name="location"
                     value={values.location}
-                    handleChange={(event, value) => {
-                      // Check if `value` is defined, fallback if necessary
-                      setFormValues((prevValues) => ({
-                        ...prevValues,
-                        location: value || event.target.value,
-                      }));
-                    }}
+                    handleChange={handleChange}
                   />
 
                   <FormTextField
